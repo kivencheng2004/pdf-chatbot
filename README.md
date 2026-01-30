@@ -148,7 +148,3 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 ## 📜 许可证
 
 [MIT License](https://www.google.com/search?q=LICENSE)
-
----
-
-**代码上传成功了吗？如果你需要，我还可以帮你编写一个 `start.bat` 脚本，让你以后双击就能同时启动前后端。**
