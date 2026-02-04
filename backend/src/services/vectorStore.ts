@@ -13,13 +13,16 @@ export class VectorStoreService {
 
     this.supabase = createClient(supabaseUrl, supabaseKey);
     
-    // 使用 OpenAI embeddings (通过 OpenRouter 代理)
+    // 使用环境变量配置 embedding 模型，如果未设置则默认使用 text-embedding-3-small
+    const embeddingModel = process.env.OPENROUTER_EMBEDDING_MODEL || 'text-embedding-3-small';
+    console.log(`VectorStoreService initialized with embedding model: ${embeddingModel}`);
+
     this.embeddings = new OpenAIEmbeddings({
       openAIApiKey: process.env.OPENROUTER_API_KEY,
       configuration: {
         baseURL: 'https://openrouter.ai/api/v1',
       },
-      modelName: 'text-embedding-3-small',
+      modelName: embeddingModel,
     });
   }
 
@@ -67,7 +70,7 @@ export class VectorStoreService {
       console.log('=== 开始向量搜索 ===');
       console.log('查询文本:', query);
       console.log('k 值:', k);
-      console.log('用户 ID:', userId);
+      // console.log('用户 ID:', userId); // 不再需要打印用户ID，因为我们不再使用它进行过滤
 
       const vectorStore = await SupabaseVectorStore.fromExistingIndex(
         this.embeddings,
@@ -78,29 +81,14 @@ export class VectorStoreService {
         }
       );
 
-      // 先不使用过滤器进行搜索,确保能找到文档
-      console.log('执行搜索(不使用用户过滤)...');
+      // 1. 全局搜索：不使用任何用户过滤
+      console.log('执行全局搜索(忽略用户ID)...');
+      
       const results = await vectorStore.similaritySearch(query, k);
       
       console.log(`找到 ${results.length} 个相似文档`);
       
-      // 如果指定了 userId,手动过滤结果
-      if (userId && results.length > 0) {
-        console.log('应用用户过滤:', userId);
-        const filteredResults = results.filter(
-          doc => doc.metadata.userId === userId
-        );
-        console.log(`过滤后剩余 ${filteredResults.length} 个文档`);
-        
-        // 如果过滤后没有结果,返回所有结果(用户可能想查看所有文档)
-        if (filteredResults.length === 0) {
-          console.log('警告: 用户过滤后没有结果,返回所有匹配文档');
-          return results;
-        }
-        
-        return filteredResults;
-      }
-      
+      // 直接返回结果，不再进行任何用户ID过滤
       console.log('=== 搜索完成 ===');
       return results;
     } catch (error) {

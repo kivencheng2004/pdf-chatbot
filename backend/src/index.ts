@@ -1,18 +1,21 @@
 import dotenv from 'dotenv';
+// 确保在任何其他导入之前加载环境变量
 dotenv.config();
-console.log('检查 URL:', process.env.SUPABASE_URL); // 添加这一行来查岗
 
 import express from 'express';
 import cors from 'cors';
 import apiRoutes from './routes/api';
 
-
-
-// 加载环境变量
-dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// 打印关键配置信息（脱敏）
+console.log('=== Server Configuration ===');
+console.log(`Supabase URL: ${process.env.SUPABASE_URL}`);
+console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+console.log(`Chat Model: ${process.env.OPENROUTER_MODEL || 'anthropic/claude-3.5-sonnet (default)'}`);
+console.log(`Embedding Model: ${process.env.OPENROUTER_EMBEDDING_MODEL || 'text-embedding-3-small (default)'}`);
+console.log('============================');
 
 // 中间件
 app.use(cors({
