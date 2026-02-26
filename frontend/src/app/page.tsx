@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Upload as UploadIcon, Trash2 } from 'lucide-react';
+import { Send, Upload as UploadIcon, Trash2, FileText } from 'lucide-react';
 import { ChatMessage } from '@/components/ChatMessage';
 import { FileUpload } from '@/components/FileUpload';
 import { ChatMessage as ChatMessageType, streamChatMessage, deleteDocuments } from '@/lib/api';
@@ -89,7 +89,7 @@ export default function Home() {
         ...prev,
         {
           role: 'assistant',
-          content: '抱歉,发生了错误。请稍后重试。',
+          content: error.message || '抱歉，发生了错误。请稍后重试。',
         },
       ]);
     } finally {
@@ -105,13 +105,13 @@ export default function Home() {
   };
 
   const handleClearDocuments = async () => {
-    if (!confirm('确定要删除所有已上传的文档吗?')) return;
+    if (!confirm('确定要删除所有已上传的文档吗？此操作不可撤销。')) return;
 
     try {
       await deleteDocuments(userId);
       alert('文档已成功删除');
     } catch (error) {
-      alert('删除文档失败');
+      alert('删除文档失败，请重试');
     }
   };
 
@@ -121,7 +121,7 @@ export default function Home() {
       ...prev,
       {
         role: 'assistant',
-        content: '文档已成功上传!现在你可以向我提问了。',
+        content: '文档已成功上传并处理！现在你可以向我提问关于文档内容的任何问题。',
       },
     ]);
   };
@@ -132,8 +132,10 @@ export default function Home() {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">PDF 聊天助手</h1>
-            <p className="text-sm text-gray-600">上传 PDF 文档并向 AI 提问</p>
+            <h1 className="text-2xl font-bold text-gray-900">文档智能问答助手</h1>
+            <p className="text-sm text-gray-600">
+              上传文档并向 AI 提问 · 支持 PDF、Word、Excel、PPT 等多种格式
+            </p>
           </div>
           
           <div className="flex gap-2">
@@ -148,6 +150,7 @@ export default function Home() {
             <button
               onClick={handleClearDocuments}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 transition-colors"
+              title="删除所有已上传的文档"
             >
               <Trash2 className="w-4 h-4" />
               <span>清空文档</span>
@@ -168,14 +171,20 @@ export default function Home() {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <div className="text-center space-y-4 max-w-md">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <UploadIcon className="w-8 h-8 text-blue-600" />
+              <div className="text-center space-y-4 max-w-lg px-4">
+                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <FileText className="w-10 h-10 text-blue-600" />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900">开始使用</h2>
                 <p className="text-gray-600">
-                  上传你的 PDF 文档,然后向 AI 助手提问任何关于文档内容的问题。
+                  上传你的文档，然后向 AI 助手提问任何关于文档内容的问题。
                 </p>
+                <div className="text-sm text-gray-500 space-y-1">
+                  <p>支持的文档格式：</p>
+                  <p className="font-medium">
+                    PDF · Word · Excel · PowerPoint · TXT · CSV · JSON · HTML · Markdown
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowUpload(true)}
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -203,7 +212,7 @@ export default function Home() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="输入你的问题... (Shift+Enter 换行)"
-              className="flex-1 resize-none border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 resize-none border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[48px] max-h-32"
               rows={1}
               disabled={loading}
             />
@@ -214,7 +223,7 @@ export default function Home() {
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
             >
               <Send className="w-5 h-5" />
-              <span>发送</span>
+              <span>{loading ? '处理中...' : '发送'}</span>
             </button>
           </div>
         </div>
